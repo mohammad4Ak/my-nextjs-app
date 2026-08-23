@@ -1,0 +1,313 @@
+'use client'
+
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import {
+  ShoppingBag,
+  User,
+  Menu,
+  X,
+  LayoutDashboard,
+  ArrowLeft,
+  ArrowUpLeft,
+  Search,
+} from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useCart } from '@/lib/cart'
+import { toPersianDigits } from '@/lib/utils'
+import NavSearch from './NavSearch'
+
+const navItems = [
+  { href: '/', label: 'خانه' },
+  { href: '/products', label: 'محصولات' },
+  { href: '/about', label: 'درباره ما' },
+  { href: '/contact', label: 'تماس' },
+]
+
+export default function Header() {
+  const pathname = usePathname()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [loggedIn, setLoggedIn] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const [hidden, setHidden] = useState(false)
+  const itemsCount = useCart((state) => state.getItemsCount())
+
+  useEffect(() => {
+    setMounted(true)
+    fetch('/api/auth/session')
+      .then((r) => r.json())
+      .then((s) => {
+        if (s?.user?.role === 'ADMIN') setIsAdmin(true)
+        if (s?.user) setLoggedIn(true)
+      })
+      .catch(() => {})
+  }, [])
+
+  // رفتار هوشمند اسکرول: پایین -> مخفی، بالا -> ظاهر
+  useEffect(() => {
+    let lastY = window.scrollY
+    const onScroll = () => {
+      const y = window.scrollY
+      setScrolled(y > 8)
+      setHidden(y > lastY && y > 180 && !menuOpen)
+      lastY = y
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [menuOpen])
+
+  // بستن منو هنگام جابهجایی بین صفحات
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [pathname])
+
+  // قفل اسکرول + Escape
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : ''
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [menuOpen])
+
+  // باز کردن جستجو با Ctrl+K یا /
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setSearchOpen(true)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  const isActive = (href: string) =>
+    href === '/' ? pathname === '/' : pathname.startsWith(href)
+
+  return (
+    <>
+      {/* Floating Pill Header */}
+      <header
+        className={`sticky top-4 z-50 transition-transform duration-300 will-change-transform ${
+          hidden ? '-translate-y-[140%]' : 'translate-y-0'
+        }`}
+      >
+        <div className="container mx-auto px-4">
+          <div
+            className={`flex items-center justify-between gap-3 h-14 md:h-16 px-3 md:px-5 rounded-2xl border transition-all duration-300 ${
+              scrolled || menuOpen
+                ? 'bg-paper/85 backdrop-blur-2xl border-line shadow-lg shadow-night/[0.07]'
+                : 'bg-paper/55 backdrop-blur-md border-transparent'
+            }`}
+          >
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-2 shrink-0">
+              <span className="w-8 h-8 bg-brand rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold">ک</span>
+              </span>
+              <span className="font-black text-night text-base md:text-lg tracking-tight">
+                کفش لند
+              </span>
+            </Link>
+
+            {/* Desktop Links */}
+            <nav className="hidden lg:flex items-center gap-1" aria-label="ناوبری اصلی">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`px-4 py-2 rounded-full text-sm font-bold transition-colors ${
+                    isActive(item.href)
+                      ? 'bg-night text-white'
+                      : 'text-mist hover:text-night hover:bg-line/70'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+
+            {/* Actions */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setSearchOpen(true)}
+                aria-label="جستجو"
+                title="جستجو (Ctrl+K)"
+                className="p-2.5 hover:bg-line/70 rounded-full transition-colors"
+              >
+                <Search className="w-[18px] h-[18px] text-night" />
+              </button>
+
+              {mounted && isAdmin && (
+                <Link
+                  href="/admin"
+                  aria-label="پنل مدیریت"
+                  title="پنل مدیریت"
+                  className="hidden sm:inline-flex p-2.5 hover:bg-line/70 rounded-full transition-colors"
+                >
+                  <LayoutDashboard className="w-[18px] h-[18px] text-night" />
+                </Link>
+              )}
+
+              <Link
+                href={mounted && loggedIn ? '/profile' : '/login'}
+                aria-label={mounted && loggedIn ? 'حساب کاربری من' : 'ورود'}
+                title={mounted && loggedIn ? 'حساب کاربری من' : 'ورود'}
+                className="hidden sm:inline-flex p-2.5 hover:bg-line/70 rounded-full transition-colors"
+              >
+                <User className="w-[18px] h-[18px] text-night" />
+              </Link>
+
+              <Link
+                href="/cart"
+                aria-label="سبد خرید"
+                className="relative p-2.5 hover:bg-line/70 rounded-full transition-colors"
+              >
+                <ShoppingBag className="w-[18px] h-[18px] text-night" />
+                {mounted && itemsCount > 0 && (
+                  <span className="absolute -top-0.5 -left-0.5 bg-brand text-white text-[11px] min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center font-black">
+                    {toPersianDigits(itemsCount)}
+                  </span>
+                )}
+              </Link>
+
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                aria-expanded={menuOpen}
+                aria-label={menuOpen ? 'بستن منو' : 'باز کردن منو'}
+                className="lg:hidden p-2.5 hover:bg-line/70 rounded-full transition-colors"
+              >
+                {menuOpen ? (
+                  <X className="w-6 h-6 text-night" />
+                ) : (
+                  <Menu className="w-6 h-6 text-night" />
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Full-Screen Takeover Menu (Mobile) */}
+      {menuOpen && (
+        <div
+          className="fixed inset-0 z-[80] lg:hidden"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="absolute inset-0 bg-night flex flex-col animate-fade-in">
+            {/* Top bar */}
+            <div className="flex items-center justify-between p-5">
+              <span className="flex items-center gap-2">
+                <span className="w-9 h-9 bg-brand rounded-xl flex items-center justify-center">
+                  <span className="text-white font-bold">ک</span>
+                </span>
+                <span className="font-black text-white">کفش لند</span>
+              </span>
+              <button
+                onClick={() => setMenuOpen(false)}
+                aria-label="بستن منو"
+                className="p-2.5 border border-white/15 hover:border-white/40 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+            </div>
+
+            {/* Giant links */}
+            <nav className="flex-1 flex flex-col justify-center px-7 gap-1 overflow-y-auto">
+              <button
+                onClick={() => {
+                  setMenuOpen(false)
+                  setSearchOpen(true)
+                }}
+                className="flex items-center gap-3 mb-4 px-4 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white/80 transition-colors"
+              >
+                <Search className="w-5 h-5" />
+                <span className="text-sm">جستجو در محصولات...</span>
+              </button>
+
+              {navItems.map((item, i) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  style={{ animationDelay: `${100 + i * 70}ms` }}
+                  className={`animate-link-in group flex items-center justify-between py-4 border-b border-white/10 ${
+                    isActive(item.href) ? 'text-brand' : 'text-white'
+                  }`}
+                >
+                  <span className="text-[2.6rem] leading-none font-black tracking-tight group-hover:text-brand transition-colors">
+                    {item.label}
+                  </span>
+                  <ArrowUpLeft className="w-7 h-7 opacity-30 group-hover:opacity-100 group-hover:text-brand transition-all" />
+                </Link>
+              ))}
+            </nav>
+
+            {/* Bottom actions */}
+            <div
+              style={{ animationDelay: '420ms' }}
+              className="animate-link-in p-7 pt-4 space-y-4"
+            >
+              <Link
+                href="/products"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center justify-center gap-2 w-full bg-brand hover:bg-brand-strong text-white py-4 rounded-2xl font-black transition-colors"
+              >
+                شروع خرید
+                <ArrowLeft className="w-5 h-5" />
+              </Link>
+
+              {mounted && isAdmin ? (
+                <Link
+                  href="/admin"
+                  className="flex items-center justify-center gap-2 w-full border border-dashed border-white/20 hover:border-white/50 text-white py-3.5 rounded-2xl font-bold transition-colors"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  پنل مدیریت
+                </Link>
+              ) : mounted && loggedIn ? (
+                <Link
+                  href="/profile"
+                  className="flex items-center justify-center gap-2 w-full border border-white/15 hover:border-white/40 text-white py-3.5 rounded-2xl font-bold transition-colors"
+                >
+                  <User className="w-4 h-4" />
+                  حساب کاربری من
+                </Link>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <Link
+                    href="/login"
+                    className="text-center border border-white/15 hover:border-white/40 text-white py-3.5 rounded-2xl font-bold transition-colors"
+                  >
+                    ورود
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="text-center bg-white/10 hover:bg-white/20 text-white py-3.5 rounded-2xl font-bold transition-colors"
+                  >
+                    ثبتنام
+                  </Link>
+                </div>
+              )}
+
+              <p className="text-center text-xs text-white/40" dir="ltr">
+                ۰۲۱-۱۲۳۴۵۶۷۸ · info@shoeland.ir
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Search Overlay */}
+      {searchOpen && <NavSearch onClose={() => setSearchOpen(false)} />}
+    </>
+  )
+}

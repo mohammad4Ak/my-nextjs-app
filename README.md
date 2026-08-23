@@ -1,0 +1,60 @@
+# فروشگاه آنلاین کفش 🥿
+
+یک فروشگاه آنلاین کفش مدرن و مینیمال با Next.js, TailwindCSS, Prisma و PostgreSQL
+
+## ویژگی‌ها
+
+- ✨ طراحی مینیمال و مدرن
+- 🛒 سبد خرید پیشرفته
+- 🔐 احراز هویت با NextAuth
+- 💳 پرداخت با زرین‌پال
+- 🎯 پنل مدیریت کامل
+- 📱 ریسپانسیو کامل
+- 🌐 رابط فارسی (RTL)
+- 🎨 طراحی چرم و کلاسیک
+
+## نصب و راه‌اندازی
+
+```bash
+# نصب وابستگی‌ها
+npm install
+
+# راه‌اندازی دیتابیس
+npx prisma migrate dev
+
+# اجرای سرور توسعه
+npm run dev
+```
+
+## تکنولوژی‌ها
+
+- **Frontend:** Next.js 14+ (App Router), TypeScript, TailwindCSS
+- **Backend:** Next.js API Routes
+- **Database:** PostgreSQL + Prisma ORM
+- **Authentication:** NextAuth.js
+- **Payment:** ZarinPal
+- **State Management:** Zustand
+
+## ساختار پروژه
+
+```
+src/
+├── app/            # Next.js App Router pages
+├── components/     # React components
+├── lib/           # Utilities & configuration
+├── types/         # TypeScript types
+└── hooks/         # Custom hooks
+```
+
+## اسکریپت‌های مفید
+
+```bash
+npm run dev        # Start development server
+npm run build      # Build for production
+npm run start      # Start production server
+npm run lint       # Run ESLint
+```
+
+## License
+
+MIT

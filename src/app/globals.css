@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-fog text-night font-body antialiased;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-brand text-white px-6 py-3 rounded-lg font-medium hover:bg-brand/90 transition-colors;
+  }
+
+  .btn-secondary {
+    @apply bg-night text-white px-6 py-3 rounded-lg font-medium hover:bg-night/90 transition-colors;
+  }
+
+  .btn-outline {
+    @apply border-2 border-night text-night px-6 py-3 rounded-lg font-medium hover:bg-night hover:text-white transition-colors;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 rounded-lg border border-line bg-white focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow;
+  }
+}
+
+/* ---------- Home page motion & signature ---------- */
+
+@keyframes marquee-rtl {
+  from { transform: translateX(0); }
+  to   { transform: translateX(50%); }
+}
+
+.animate-marquee {
+  animation: marquee-rtl 32s linear infinite;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.fade-up        { animation: fade-up 0.7s ease-out both; }
+.fade-up-d1     { animation-delay: 0.12s; }
+.fade-up-d2     { animation-delay: 0.24s; }
+.fade-up-d3     { animation-delay: 0.38s; }
+
+/* خط دوخت - امضای بصری فروشگاه */
+.stitch {
+  background-image: repeating-linear-gradient(
+    to left,
+    rgba(100, 116, 139, 0.45) 0px,
+    rgba(100, 116, 139, 0.45) 14px,
+    transparent 14px,
+    transparent 26px
+  );
+  height: 2px;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+.animate-toast-in {
+  animation: toast-in 0.25s ease-out both;
+}
+
+/* ---------- Mobile drawer menu ---------- */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-in { animation: fade-in 0.2s ease-out both; }
+
+@keyframes drawer-in {
+  from { transform: translateX(100%); }
+  to   { transform: none; }
+}
+.animate-drawer-in { animation: drawer-in 0.3s cubic-bezier(0.32, 0.72, 0, 1) both; }
+
+@keyframes link-in {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: none; }
+}
+.animate-link-in { animation: link-in 0.4s ease-out both; }
+
+/* اسکرولبار مخفی برای نوار ناوبری افقی موبایل ادمین */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee,
+  .fade-up,
+  .fade-up-d1,
+  .fade-up-d2,
+  .fade-up-d3,
+  .animate-toast-in,
+  .animate-fade-in,
+  .animate-drawer-in,
+  .animate-link-in {
+    animation: none;
+  }
+}
