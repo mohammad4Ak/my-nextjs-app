@@ -58,3 +58,45 @@ npm run lint       # Run ESLint
 ## License
 
 MIT
+
+---
+
+## 🚀 دیپلوی روی Vercel + Neon (رایگان)
+
+GitHub Pages فقط استاتیک سرو میکند و به API/دیتابیس دسترسی ندارد؛ برای آنلاین شدن کامل:
+
+### ۱) دیتابیس ابری (Neon)
+1. در [neon.tech](https://neon.tech) اکانت بساز و یک Project جدید ایجاد کن
+2. Connection String را کپی کن (شبیه `postgresql://...?sslmode=require`)
+
+### ۲) ساخت جداول و داده اولیه
+در ریشه پروژه، `.env` لوکال را موقتاً به Connection String نئون تغییر بده و اجرا کن:
+```bash
+npm run db:deploy        # مایگریشنها
+npm run db:seed          # ادمین + دستهها + محصولات نمونه
+npm run db:seed:orders   # سفارشهای نمونه داشبورد (اختیاری)
+```
+حساب پیشفرض ادمین: `admin@shoeland.ir / admin123` (بعد از دیپلوی رمزش را عوض کن)
+
+### ۳) دیپلوی روی Vercel
+1. [vercel.com](https://vercel.com) → Add New → Project → ریپوی GitHub را انتخاب کن
+2. Environment Variables را اضافه کن:
+   - `DATABASE_URL` = کانکشن استرینگ Neon
+   - `AUTH_SECRET` = یک رشته تصادفی قوی
+   - `ZARINPAL_MERCHANT_ID` = مرچنت زرینپال
+3. Deploy بزن
+
+### ۴) آپلود تصاویر در پروداکشن
+فایلسیستم Vercel موندگار نیست؛ آپلود خودکار به **Vercel Blob** سوئیچ میشود:
+1. در داشبورد Vercel → تب Storage → Create Blob Store → متصل به همین پروژه
+2. توکن `BLOB_READ_WRITE_TOKEN` خودکار تزریق میشود — بدون تغییر کد ✓
+
+(بدون این توکن، آپلود فقط در حالت لوکال روی دیسک کار میکند)
+
+### خلاصه متغیرهای محیطی پروداکشن
+| کلید | توضیح |
+|------|-------|
+| `DATABASE_URL` | کانکشن استرینگ Neon |
+| `AUTH_SECRET` | رشته تصادفی قوی |
+| `ZARINPAL_MERCHANT_ID` | مرچنت ID زرینپال |
+| `BLOB_READ_WRITE_TOKEN` | خودکار توسط Vercel Blob |

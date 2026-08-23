@@ -222,6 +222,7 @@ export default async function HomePage() {
                     price: product.price,
                     image: product.images[0],
                     category: product.category?.name ?? '',
+                    stock: product.stock,
                   }}
                 />
               ))}

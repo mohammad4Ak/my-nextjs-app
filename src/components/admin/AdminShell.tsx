@@ -9,7 +9,9 @@ import {
   ShoppingBag,
   Users,
   Store,
+  LogOut,
 } from 'lucide-react'
+import { signOut } from 'next-auth/react'
 
 const adminNav = [
   { href: '/admin', label: 'داشبورد', Icon: LayoutDashboard },
@@ -56,6 +58,14 @@ export default function AdminShell({
               <Store className="w-4 h-4" />
               <span className="hidden sm:inline">فروشگاه</span>
             </Link>
+            <button
+              onClick={() => signOut({ redirectTo: '/' })}
+              aria-label="خروج از حساب"
+              title="خروج از حساب"
+              className="p-2.5 hover:bg-red-500/80 rounded-full transition-colors border border-white/10"
+            >
+              <LogOut className="w-4 h-4 rotate-180" />
+            </button>
           </div>
         </div>
       </header>

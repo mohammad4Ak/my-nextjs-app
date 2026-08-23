@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   ShoppingBag,
   User,
@@ -11,8 +11,10 @@ import {
   ArrowLeft,
   ArrowUpLeft,
   Search,
+  LogOut,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { signOut } from 'next-auth/react'
 import { useCart } from '@/lib/cart'
 import { toPersianDigits } from '@/lib/utils'
 import NavSearch from './NavSearch'
@@ -26,6 +28,7 @@ const navItems = [
 
 export default function Header() {
   const pathname = usePathname()
+  const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -92,6 +95,22 @@ export default function Header() {
   const isActive = (href: string) =>
     href === '/' ? pathname === '/' : pathname.startsWith(href)
 
+  // در لحظه کلیک مستقیم از سرور میپرسیم کاربر کیست - ضد کش و ضد stale
+  const handleUserClick = async () => {
+    try {
+      const res = await fetch('/api/auth/session', { cache: 'no-store' })
+      const session = await res.json()
+      router.push(session?.user ? '/profile' : '/login')
+    } catch {
+      router.push('/login')
+    }
+  }
+
+  const handleLogout = async () => {
+    setMenuOpen(false)
+    await signOut({ redirectTo: '/' })
+  }
+
   return (
     <>
       {/* Floating Pill Header */}
@@ -157,14 +176,14 @@ export default function Header() {
                 </Link>
               )}
 
-              <Link
-                href={mounted && loggedIn ? '/profile' : '/login'}
-                aria-label={mounted && loggedIn ? 'حساب کاربری من' : 'ورود'}
-                title={mounted && loggedIn ? 'حساب کاربری من' : 'ورود'}
+              <button
+                onClick={handleUserClick}
+                aria-label="حساب کاربری"
+                title="حساب کاربری"
                 className="hidden sm:inline-flex p-2.5 hover:bg-line/70 rounded-full transition-colors"
               >
                 <User className="w-[18px] h-[18px] text-night" />
-              </Link>
+              </button>
 
               <Link
                 href="/cart"
@@ -274,13 +293,22 @@ export default function Header() {
                   پنل مدیریت
                 </Link>
               ) : mounted && loggedIn ? (
-                <Link
-                  href="/profile"
-                  className="flex items-center justify-center gap-2 w-full border border-white/15 hover:border-white/40 text-white py-3.5 rounded-2xl font-bold transition-colors"
-                >
-                  <User className="w-4 h-4" />
-                  حساب کاربری من
-                </Link>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={handleUserClick}
+                    className="flex items-center justify-center gap-2 border border-white/15 hover:border-white/40 text-white py-3.5 rounded-2xl font-bold transition-colors"
+                  >
+                    <User className="w-4 h-4" />
+                    حساب من
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center justify-center gap-2 bg-red-500/20 hover:bg-red-500/40 text-red-200 py-3.5 rounded-2xl font-bold transition-colors"
+                  >
+                    <LogOut className="w-4 h-4 rotate-180" />
+                    خروج
+                  </button>
+                </div>
               ) : (
                 <div className="grid grid-cols-2 gap-3">
                   <Link

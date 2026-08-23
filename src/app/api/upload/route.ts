@@ -6,6 +6,13 @@ import path from 'path'
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 const MAX_SIZE = 5 * 1024 * 1024 // ۵ مگابایت
 
+const EXT_MAP: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+}
+
 export async function POST(request: Request) {
   const session = await auth()
   if (session?.user?.role !== 'ADMIN') {
@@ -34,16 +41,26 @@ export async function POST(request: Request) {
   }
 
   const bytes = Buffer.from(await file.arrayBuffer())
-
-  const extMap: Record<string, string> = {
-    'image/jpeg': 'jpg',
-    'image/png': 'png',
-    'image/webp': 'webp',
-    'image/gif': 'gif',
-  }
-  const ext = extMap[file.type] || 'jpg'
+  const ext = EXT_MAP[file.type] || 'jpg'
   const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 10)}.${ext}`
 
+  // در پروداکشن (Vercel): ذخیره در Vercel Blob
+  // فایلسیستم سرورلس موندگار نیست، پس دیسک فقط برای لوکال است
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      const { put } = await import('@vercel/blob')
+      const blob = await put(`products/${filename}`, bytes, {
+        access: 'public',
+        contentType: file.type,
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+      })
+      return NextResponse.json({ url: blob.url }, { status: 201 })
+    } catch {
+      return NextResponse.json({ error: 'خطا در آپلود به Blob' }, { status: 500 })
+    }
+  }
+
+  // حالت لوکال: ذخیره روی دیسک
   const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
   await mkdir(uploadsDir, { recursive: true })
   await writeFile(path.join(uploadsDir, filename), bytes)

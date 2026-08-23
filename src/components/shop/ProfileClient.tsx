@@ -12,7 +12,10 @@ import {
   ChevronDown,
   Check,
   X,
+  LogOut,
+  KeyRound,
 } from 'lucide-react'
+import { signOut } from 'next-auth/react'
 import { formatPrice } from '@/lib/utils'
 
 interface SessionUser {
@@ -65,6 +68,12 @@ export default function ProfileClient({ user }: { user: SessionUser }) {
   const [accForm, setAccForm] = useState({ name: user.name, phone: '' })
   const [accSaving, setAccSaving] = useState(false)
   const [accMsg, setAccMsg] = useState('')
+
+  // تغییر رمز عبور
+  const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' })
+  const [pwSaving, setPwSaving] = useState(false)
+  const [pwError, setPwError] = useState('')
+  const [pwSuccess, setPwSuccess] = useState('')
 
   // آدرسها
   const [addresses, setAddresses] = useState<Address[]>([])
@@ -136,6 +145,46 @@ export default function ProfileClient({ user }: { user: SessionUser }) {
     } finally {
       setAccSaving(false)
     }
+  }
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPwError('')
+    setPwSuccess('')
+
+    if (pwForm.next !== pwForm.confirm) {
+      setPwError('رمز جدید و تکرار آن یکسان نیستند')
+      return
+    }
+
+    setPwSaving(true)
+    try {
+      const res = await fetch('/api/profile/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: pwForm.current,
+          newPassword: pwForm.next,
+        }),
+      })
+      const data = await res.json()
+
+      if (!res.ok) {
+        setPwError(data.error || 'خطا در تغییر رمز')
+        return
+      }
+
+      setPwSuccess('رمز عبور با موفقیت تغییر کرد ✓')
+      setPwForm({ current: '', next: '', confirm: '' })
+    } catch {
+      setPwError('خطای ارتباط با سرور')
+    } finally {
+      setPwSaving(false)
+    }
+  }
+
+  const handleLogout = async () => {
+    await signOut({ redirectTo: '/' })
   }
 
   /* ---------- Addresses ---------- */
@@ -361,47 +410,134 @@ export default function ProfileClient({ user }: { user: SessionUser }) {
 
         {/* ---------- Account ---------- */}
         {tab === 'account' && (
-          <form onSubmit={handleAccountSave} className="card p-6 space-y-5 max-w-xl">
-            <h3 className="font-bold text-lg">اطلاعات حساب</h3>
+          <div className="grid gap-6 max-w-xl">
+            <form onSubmit={handleAccountSave} className="card p-6 space-y-5">
+              <h3 className="font-bold text-lg">اطلاعات حساب</h3>
 
-            <div>
-              <label className="block font-bold mb-2">ایمیل</label>
-              <input disabled dir="ltr" className="input-field bg-fog/60" value={user.email} />
-              <p className="text-xs text-mist mt-1">ایمیل قابل تغییر نیست</p>
-            </div>
-
-            <div>
-              <label className="block font-bold mb-2">نام</label>
-              <input
-                required
-                className="input-field"
-                value={accForm.name}
-                onChange={(e) => setAccForm({ ...accForm, name: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <label className="block font-bold mb-2">شماره تماس</label>
-              <input
-                type="tel"
-                dir="ltr"
-                className="input-field"
-                placeholder="09123456789"
-                value={accForm.phone}
-                onChange={(e) => setAccForm({ ...accForm, phone: e.target.value })}
-              />
-            </div>
-
-            {accMsg && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
-                {accMsg}
+              <div>
+                <label className="block font-bold mb-2">ایمیل</label>
+                <input disabled dir="ltr" className="input-field bg-fog/60" value={user.email} />
+                <p className="text-xs text-mist mt-1">ایمیل قابل تغییر نیست</p>
               </div>
-            )}
 
-            <button type="submit" disabled={accSaving} className="btn-primary disabled:opacity-50">
-              {accSaving ? 'در حال ذخیره...' : 'ذخیره تغییرات'}
+              <div>
+                <label className="block font-bold mb-2">نام</label>
+                <input
+                  required
+                  className="input-field"
+                  value={accForm.name}
+                  onChange={(e) => setAccForm({ ...accForm, name: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold mb-2">شماره تماس</label>
+                <input
+                  type="tel"
+                  dir="ltr"
+                  className="input-field"
+                  placeholder="09123456789"
+                  value={accForm.phone}
+                  onChange={(e) => setAccForm({ ...accForm, phone: e.target.value })}
+                />
+              </div>
+
+              {accMsg && (
+                <div className={`px-4 py-3 rounded-lg text-sm border ${
+                  accMsg.includes('✓')
+                    ? 'bg-green-50 border-green-200 text-green-700'
+                    : 'bg-red-50 border-red-200 text-red-700'
+                }`}>
+                  {accMsg}
+                </div>
+              )}
+
+              <button type="submit" disabled={accSaving} className="btn-primary disabled:opacity-50">
+                {accSaving ? 'در حال ذخیره...' : 'ذخیره تغییرات'}
+              </button>
+            </form>
+
+            {/* Change Password */}
+            <form onSubmit={handlePasswordSubmit} className="card p-6 space-y-5">
+              <h3 className="font-bold text-lg flex items-center gap-2">
+                <KeyRound className="w-5 h-5 text-brand" />
+                تغییر رمز عبور
+              </h3>
+
+              <div>
+                <label className="block font-bold mb-2">رمز عبور فعلی *</label>
+                <input
+                  required
+                  type="password"
+                  dir="ltr"
+                  autoComplete="current-password"
+                  className="input-field"
+                  placeholder="••••••••"
+                  value={pwForm.current}
+                  onChange={(e) => setPwForm({ ...pwForm, current: e.target.value })}
+                />
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold mb-2">رمز جدید *</label>
+                  <input
+                    required
+                    minLength={6}
+                    type="password"
+                    dir="ltr"
+                    autoComplete="new-password"
+                    className="input-field"
+                    placeholder="••••••••"
+                    value={pwForm.next}
+                    onChange={(e) => setPwForm({ ...pwForm, next: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold mb-2">تکرار رمز جدید *</label>
+                  <input
+                    required
+                    type="password"
+                    dir="ltr"
+                    autoComplete="new-password"
+                    className="input-field"
+                    placeholder="••••••••"
+                    value={pwForm.confirm}
+                    onChange={(e) => setPwForm({ ...pwForm, confirm: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              {pwError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {pwError}
+                </div>
+              )}
+              {pwSuccess && (
+                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+                  {pwSuccess}
+                </div>
+              )}
+
+              <button type="submit" disabled={pwSaving} className="btn-primary disabled:opacity-50">
+                {pwSaving ? 'در حال تغییر...' : 'اعمال رمز جدید'}
+              </button>
+            </form>
+
+            {/* Logout */}
+            <button
+              onClick={handleLogout}
+              className="card p-5 w-full flex items-center justify-between group hover:border-red-200 transition-colors"
+            >
+              <span className="flex items-center gap-3 font-bold text-red-600">
+                <LogOut className="w-5 h-5 rotate-180" />
+                خروج از حساب کاربری
+              </span>
+              <span className="text-mist text-sm group-hover:text-night transition-colors">
+                خروج میزنی؟ بعداً برگرد 👋
+              </span>
             </button>
-          </form>
+          </div>
         )}
       </div>
 

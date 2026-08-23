@@ -109,7 +109,7 @@ export default function LoginPage() {
           <p className="text-center mt-6 text-mist">
             حساب ندارید؟{' '}
             <Link href="/register" className="text-brand font-medium hover:underline">
-              ثبتنام کنید
+              ثبت نام کنید
             </Link>
           </p>
         </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Shield, Trash2, Pencil, X, Plus, UserPlus } from 'lucide-react'
+import { Shield, Trash2, Pencil, X, Plus, UserPlus, KeyRound } from 'lucide-react'
 
 interface User {
   id: string
@@ -21,6 +21,7 @@ export default function AdminUsersPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [form, setForm] = useState({ name: '', phone: '', role: 'USER' as 'USER' | 'ADMIN' })
+  const [newPassword, setNewPassword] = useState('')
   const [saving, setSaving] = useState(false)
   const [modalError, setModalError] = useState('')
 
@@ -56,6 +57,7 @@ export default function AdminUsersPage() {
       phone: user.phone ?? '',
       role: user.role,
     })
+    setNewPassword('')
     setModalError('')
     setModalOpen(true)
   }
@@ -71,7 +73,10 @@ export default function AdminUsersPage() {
       const res = await fetch(`/api/users/${editingUser.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          ...(newPassword !== '' && { newPassword }),
+        }),
       })
 
       const data = await res.json()
@@ -287,6 +292,25 @@ export default function AdminUsersPage() {
                   <option value="USER">کاربر</option>
                   <option value="ADMIN">مدیر</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block font-bold mb-2 flex items-center gap-2">
+                  <KeyRound className="w-4 h-4 text-brand" />
+                  رمز عبور جدید
+                </label>
+                <input
+                  type="password"
+                  dir="ltr"
+                  className="input-field"
+                  placeholder="خالی = بدون تغییر"
+                  minLength={6}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <p className="text-xs text-mist mt-1">
+                  فقط اگر بخوای رمز جدید ست کنی پر کن (حداقل ۶ کاراکتر)
+                </p>
               </div>
 
               {modalError && (

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 
@@ -26,12 +27,25 @@ export async function PATCH(
     )
   }
 
+  // ست رمز عبور جدید توسط ادمین (اختیاری)
+  let hashedNewPassword: string | undefined
+  if (body.newPassword !== undefined && body.newPassword !== '') {
+    if (String(body.newPassword).length < 6) {
+      return NextResponse.json(
+        { error: 'رمز جدید باید حداقل ۶ کاراکتر باشد' },
+        { status: 400 }
+      )
+    }
+    hashedNewPassword = await bcrypt.hash(String(body.newPassword), 10)
+  }
+
   const user = await prisma.user.update({
     where: { id },
     data: {
       ...(body.role !== undefined && { role: body.role }),
       ...(body.name !== undefined && body.name.trim() && { name: body.name.trim() }),
       ...(body.phone !== undefined && { phone: body.phone.trim() || null }),
+      ...(hashedNewPassword && { password: hashedNewPassword }),
     },
     select: {
       id: true,
