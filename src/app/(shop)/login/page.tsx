@@ -101,13 +101,13 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 bg-fog/70 border border-line rounded-lg p-4 text-sm text-mist space-y-1" dir="ltr">
+          {/* <div className="mt-6 bg-fog/70 border border-line rounded-lg p-4 text-sm text-mist space-y-1" dir="ltr">
             <p><strong>Admin:</strong> admin@shoeland.ir / admin123</p>
             <p><strong>User:</strong> user@test.com / user123</p>
-          </div>
+          </div> */}
 
           <p className="text-center mt-6 text-mist">
-            حساب ندارید؟{' '}
+            حساب کاربری ندارید؟{' '}
             <Link href="/register" className="text-brand font-medium hover:underline">
               ثبت نام کنید
             </Link>
