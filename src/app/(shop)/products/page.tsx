@@ -160,84 +160,91 @@ function ProductsContent() {
           )}
         </div>
 
-        {/* Category chips */}
-        <div className="flex flex-wrap gap-2.5 mb-5">
-          <button
-            onClick={() => setActiveCat('ALL')}
-            className={`px-5 py-2.5 rounded-full text-sm font-bold transition-colors ${
-              activeCat === 'ALL'
-                ? 'bg-night text-white'
-                : 'bg-paper border border-line hover:border-brand hover:text-brand text-mist'
-            }`}
-          >
-            همه
-          </button>
-          {categories.map((c) => (
+        {/* Toolbar: دسته بندیها (راست) + مرتبسازی/قیمت/موجودی (چپ) */}
+        <div className="bg-paper border border-line rounded-2xl p-4 mb-8 flex flex-col lg:flex-row lg:items-center gap-4">
+          {/* Category chips */}
+          <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-0">
             <button
-              key={c.id}
-              onClick={() => setActiveCat(activeCat === c.id ? 'ALL' : c.id)}
-              className={`px-5 py-2.5 rounded-full text-sm font-bold transition-colors ${
-                activeCat === c.id
+              onClick={() => setActiveCat('ALL')}
+              className={`px-4 py-2 rounded-full text-sm font-bold transition-colors ${
+                activeCat === 'ALL'
                   ? 'bg-night text-white'
-                  : 'bg-paper border border-line hover:border-brand hover:text-brand text-mist'
+                  : 'bg-fog border border-line hover:border-brand hover:text-brand text-mist'
               }`}
             >
-              {c.name}
+              همه
             </button>
-          ))}
-        </div>
-
-        {/* Sort & Price & Stock */}
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-3 bg-paper border border-line rounded-2xl p-4 mb-8">
-          <div className="flex items-center gap-2">
-            <ArrowUpDown className="w-4 h-4 text-mist" />
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value as SortKey)}
-              aria-label="مرتبسازی"
-              className="input-field !py-2 !w-auto text-sm font-medium"
-            >
-              <option value="newest">جدیدترین</option>
-              <option value="cheap">ارزانترین</option>
-              <option value="expensive">گرانترین</option>
-            </select>
+            {categories.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => setActiveCat(activeCat === c.id ? 'ALL' : c.id)}
+                className={`px-4 py-2 rounded-full text-sm font-bold transition-colors ${
+                  activeCat === c.id
+                    ? 'bg-night text-white'
+                    : 'bg-fog border border-line hover:border-brand hover:text-brand text-mist'
+                }`}
+              >
+                {c.name}
+              </button>
+            ))}
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-night">قیمت:</span>
-            <input
-              type="number"
-              min={0}
-              placeholder="از"
-              dir="ltr"
-              aria-label="حداقل قیمت"
-              className="input-field !py-2 !w-28 text-sm"
-              value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
-            />
-            <span className="text-mist">—</span>
-            <input
-              type="number"
-              min={0}
-              placeholder="تا"
-              dir="ltr"
-              aria-label="حداکثر قیمت"
-              className="input-field !py-2 !w-28 text-sm"
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
-            />
-            <span className="text-xs text-mist">تومان</span>
-          </div>
+          {/* Divider */}
+          <div className="hidden lg:block w-px h-8 bg-line shrink-0" aria-hidden />
+          <div className="lg:hidden h-px w-full bg-line" aria-hidden />
 
-          <label className="flex items-center gap-2 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={inStockOnly}
-              onChange={(e) => setInStockOnly(e.target.checked)}
-              className="w-4 h-4 accent-[#4F46E5]"
-            />
-            <span className="text-sm font-medium text-night">فقط کالاهای موجود</span>
-          </label>
+          {/* Sort & Price & Stock */}
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3 lg:shrink-0">
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="w-4 h-4 text-mist" />
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value as SortKey)}
+                aria-label="مرتبسازی"
+                className="input-field !py-2 !w-auto text-sm font-medium"
+              >
+                <option value="newest">جدیدترین</option>
+                <option value="cheap">ارزانترین</option>
+                <option value="expensive">گرانترین</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-night">قیمت:</span>
+              <input
+                type="number"
+                min={0}
+                placeholder="از"
+                dir="ltr"
+                aria-label="حداقل قیمت"
+                className="input-field !py-2 !w-24 text-sm"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+              />
+              <span className="text-mist">—</span>
+              <input
+                type="number"
+                min={0}
+                placeholder="تا"
+                dir="ltr"
+                aria-label="حداکثر قیمت"
+                className="input-field !py-2 !w-24 text-sm"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+              />
+              <span className="text-xs text-mist">تومان</span>
+            </div>
+
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={inStockOnly}
+                onChange={(e) => setInStockOnly(e.target.checked)}
+                className="w-4 h-4 accent-[#4F46E5]"
+              />
+              <span className="text-sm font-medium text-night whitespace-nowrap">فقط موجود</span>
+            </label>
+          </div>
         </div>
 
         {/* Products Grid */}
